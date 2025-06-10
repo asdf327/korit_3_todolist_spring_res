@@ -4,11 +4,33 @@ import type { Todo } from './types/Todo';
 import TodoForm from "./components/TodoForm"
 import {TodoList} from "./components/TodoList"
 import { getAllTodo, addTodoApi, toggleTodoApi, deleteTodoApi } from './services/todoService';
-// import { v4 as uuid } from 'uuid'; 
+import axios from 'axios';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('authToken'));
+
+  const handleLoginSuccess = (credentalResponse: CredentialResponse) => {
+    const idToken = credentalResponse.credential;
+    if(idToken) {
+      setAuthToken(idToken);
+      localStorage.setItem('authToken', idToken);
+    }
+  }
+
+  const handleLoginError = () => {
+    console.log('로그인 실패');
+    
+  }
+
+  const handleLogout = () => {
+    setAuthToken(null);
+    localStorage.removeItem('authToken');
+    setTodos([]);
+  }
 
   useEffect(() => {
     const fetchTodosFromServer = async () : Promise<void> => {
@@ -46,7 +68,7 @@ function App() {
         prevTodos.map(todo => (todo.id === id ? updatedTodo:todo))
       );
     } catch (error) {
-      console.log("완료 상태 변경에 실패했습2니다. : ", error);
+      console.log("완료 상태 변경에 실패했습니다. : ", error);
     }
   };
 
@@ -61,15 +83,34 @@ function App() {
 
   return (
     <div>
-      <h1>Todo List</h1>
-      <TodoForm onAddTodo={handleAddTodo}/>
-      {
-        isLoading ? (
-          <p>목록을 불러오는 중...</p>
-        ) : (
-          <TodoList todos={todos} onToggleComplete={handToggleComplete} onDeleteTodo={handleDeketeTodo}/>
-        )
-      }
+      <header>
+        <h1>Todo List</h1>
+        <div>
+          {
+            authToken ? (
+              <button onClick={handleLogout}>Logout</button>
+            ) : (
+              <GoogleLogin onSuccess={handleLoginSuccess} onError= {handleLoginError} />
+            )
+          }
+        </div>
+      </header>
+      <main>
+        {
+          authToken ? (
+            isLoading ? (
+              <p>목록을 불러오는 중...</p>
+            ) : (
+              <>
+              <TodoForm onAddTodo={handleAddTodo}/>
+              <TodoList todos={todos} onToggleComplete={handToggleComplete} onDeleteTodo={handleDeketeTodo}/>
+              </>
+            )
+          ) : (
+            <h2>로그인하여 Todo List를 작성해보시오</h2>
+          )
+        }
+      </main>
     </div>
   )
 }
