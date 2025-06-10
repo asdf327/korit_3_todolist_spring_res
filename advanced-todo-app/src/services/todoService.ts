@@ -5,10 +5,11 @@ import apiClient from "./apiClient";
 export const getAllTodo = async (): Promise<Todo[]> => {
   try {
     const response = await apiClient.get<Todo[]>('/todos');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : []
   }
   catch (error) {
     console.log('Error fetching todos : ', error);
+    return [];
   }
 };
 
@@ -19,7 +20,6 @@ export const addTodoApi = async (text: string) : Promise<Todo> => {
   }
   catch (error) {
     console.log("Error adding todo: ", error);
-    
   }
 };
 

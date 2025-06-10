@@ -5,7 +5,7 @@ import TodoForm from "./components/TodoForm"
 import {TodoList} from "./components/TodoList"
 import { getAllTodo, addTodoApi, toggleTodoApi, deleteTodoApi } from './services/todoService';
 import axios from 'axios';
-import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 
 
 function App() {
@@ -34,20 +34,28 @@ function App() {
 
   useEffect(() => {
     const fetchTodosFromServer = async () : Promise<void> => {
-      try {
-        setIsLoading(true);
-        const serverTodos = await getAllTodo();
-        setTodos(serverTodos);
-      } catch (error) {
-        console.log('서버에서 데이터를 가지고 오는 데 실패했습니다 : ', error);
-      } finally {
-        setIsLoading(false);
+      if(authToken) {
+        try {
+          setIsLoading(true);
+          const serverTodos = await getAllTodo();
+          setTodos(serverTodos);
+        }
+        catch (error) {
+          console.log('서버에서 데이터를 가지고 오는 데 실패했습니다 : ', error);
+            if(axios.isAxiosError(Error) && (error.rrsponse?.state === 401 || error.response?.this.state === 403)) {
+              handleLogout();
+            }
+          } 
+          finally {
+            setIsLoading(false);
+        }
       }
     };
     fetchTodosFromServer();
-  }, []);
+  }, [authToken]);
 
   const handleAddTodo = async (text: string): Promise<void> => {
+    if(!authToken) return
     try {
       setIsLoading(true);
       const newTodo = await addTodoApi(text);
@@ -60,6 +68,7 @@ function App() {
   }  
 
   const handToggleComplete = async (id: number): Promise<void> => {
+    if(!authToken) return
     try {
       const todoToToggle = todos.find(todo => todo.id === id);
       if(!todoToToggle) return;
@@ -73,6 +82,7 @@ function App() {
   };
 
   const handleDeketeTodo = async (id: number) :  Promise<void> => {
+    if(!authToken) return
     try {
       await deleteTodoApi(id);
       setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id))
@@ -83,7 +93,7 @@ function App() {
 
   return (
     <div>
-      <header>
+      <header style={{display: 'fiex', justifyContent: 'space-between', alignItems: 'center', padding: 'lrem'}}>
         <h1>Todo List</h1>
         <div>
           {
