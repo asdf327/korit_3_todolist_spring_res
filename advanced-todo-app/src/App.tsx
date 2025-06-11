@@ -42,7 +42,7 @@ function App() {
         }
         catch (error) {
           console.log('서버에서 데이터를 가지고 오는 데 실패했습니다 : ', error);
-            if(axios.isAxiosError(Error) && (error.rrsponse?.state === 401 || error.response?.this.state === 403)) {
+            if(axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
               handleLogout();
             }
           } 
@@ -60,10 +60,13 @@ function App() {
       setIsLoading(true);
       const newTodo = await addTodoApi(text);
       setTodos(prevTodos => [...prevTodos, newTodo]);
+      // getAllTodo();
       setIsLoading(false);
     } catch (error) {
       console.log('todo룰 추가하는 데 실패했습니다. : ', error);
-      
+    }
+    finally {
+      setIsLoading(false);
     }
   }  
 
@@ -79,6 +82,9 @@ function App() {
     } catch (error) {
       console.log("완료 상태 변경에 실패했습니다. : ", error);
     }
+    finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeketeTodo = async (id: number) :  Promise<void> => {
@@ -89,11 +95,14 @@ function App() {
     } catch (error) {
       console.log('todo를 지우는 데 실패했습니다. : ', error);
     }
+    finally {
+      setIsLoading(false);
+    }
   }
 
   return (
     <div>
-      <header style={{display: 'fiex', justifyContent: 'space-between', alignItems: 'center', padding: 'lrem'}}>
+      <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem'}}>
         <h1>Todo List</h1>
         <div>
           {

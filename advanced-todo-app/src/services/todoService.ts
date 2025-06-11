@@ -20,6 +20,7 @@ export const addTodoApi = async (text: string) : Promise<Todo> => {
   }
   catch (error) {
     console.log("Error adding todo: ", error);
+    throw error;
   }
 };
 
@@ -37,7 +38,7 @@ export const deleteTodoApi = async(id: number): Promise<void> => {
   try {
     await apiClient.delete(`/todos/${id}`)
   } catch (error) {
-    console.log(`Error deleteting todo: ${id} : `, error);
+    console.log(`Error deleting todo: ${id} : `, error);
     throw error;
   }
 }
